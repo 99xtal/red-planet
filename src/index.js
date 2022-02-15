@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import colorMap from "../textures/marscolormap.jpg";
 import bumpMap from "../textures/marsbumpmap.jpg";
+import { Loader } from "three";
 
 const canvasWidth = window.innerWidth;
 const canvasHeight = window.innerHeight;
@@ -21,13 +23,13 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(0, 0, 30);
+camera.position.set(0, 0, 100);
 
 //initialize OrbitControls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.75;
-controls.enablePan = false;
+controls.enablePan = true;
 controls.update();
 
 //initialize textures
@@ -36,13 +38,40 @@ textureLoader.crossOrigin = "";
 const marsColorMap = textureLoader.load(colorMap);
 const marsBumpMap = textureLoader.load(bumpMap);
 
+//load 3D objects
+
+var phobos;
+var deimos;
+
+function loadMoons() {
+  const gltfloader = new GLTFLoader();
+
+  gltfloader.load("../models/Phobos_1_1000.glb", function (gltf) {
+    const scale = 0.1;
+    phobos = gltf.scene;
+    phobos.scale.set(scale, scale, scale);
+    phobos.position.set(24.7, 0, 0);
+    scene.add(phobos);
+  });
+
+  gltfloader.load("../models/Deimos_1_1000.glb", function (gltf) {
+    const scale = 0.1;
+    deimos = gltf.scene;
+    deimos.scale.set(scale, scale, scale);
+    deimos.position.set(166.76, 0, 0);
+    scene.add(deimos);
+  });
+}
+
+loadMoons();
+
 //lighting
 const sunlight = new THREE.DirectionalLight(0xffffff, 1);
 sunlight.position.set(1, 0, 2);
 scene.add(sunlight);
 
 //create mars
-const marsGeometry = new THREE.SphereGeometry(4, 30, 30);
+const marsGeometry = new THREE.SphereGeometry(21, 30, 30);
 const marsMaterial = new THREE.MeshStandardMaterial({
   map: marsColorMap,
   bumpMap: marsBumpMap,
@@ -50,6 +79,7 @@ const marsMaterial = new THREE.MeshStandardMaterial({
 });
 const mars = new THREE.Mesh(marsGeometry, marsMaterial);
 scene.add(mars);
+//console.log(mars.scale);
 
 //mars axial tilt
 mars.rotateZ(-0.43964844);
@@ -68,11 +98,13 @@ const points = [origin, axialTilt];
 // scene.add(axesHelper);
 
 //create stars
+const starsInnerBound = 0;
+const starsOuterBound = 2000;
 const starVertices = [];
 for (let i = 0; i < 10000; i++) {
-  const x = (Math.random() - 0.5) * 2000 + 200;
-  const y = (Math.random() - 0.5) * 2000 + 200;
-  const z = (Math.random() - 0.5) * 2000 + 200;
+  const x = (Math.random() - 0.5) * starsOuterBound + starsInnerBound;
+  const y = (Math.random() - 0.5) * starsOuterBound + starsInnerBound;
+  const z = (Math.random() - 0.5) * starsOuterBound + starsInnerBound;
   starVertices.push(x, y, z);
 }
 const starVertices32 = new Float32Array(starVertices);
